@@ -11,6 +11,7 @@ mercadopago.configure({
 const app = express();
 app.use(express.json());
 
+// COMANDO START
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, "🔥 Bem-vindo! Assine para acessar o VIP.", {
     reply_markup: {
@@ -21,6 +22,7 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
+// BOTÃO PAGAMENTO
 bot.on('callback_query', async (query) => {
   const userId = query.from.id;
 
@@ -39,4 +41,13 @@ bot.on('callback_query', async (query) => {
   }
 });
 
-app.listen(3000, () => console.log("Rodando"));
+// 🔑 CAPTURAR ID DO CANAL (IMPORTANTE)
+bot.on('message', (msg) => {
+  console.log("CHAT ID:", msg.chat.id);
+});
+
+app.get('/', (req, res) => {
+  res.send("Rodando");
+});
+
+app.listen(3000, () => console.log("Servidor rodando"));
