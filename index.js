@@ -24,7 +24,7 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
-// PAGAMENTO
+// BOTÃO PAGAMENTO
 bot.on('callback_query', async (query) => {
   const userId = query.from.id;
 
@@ -36,16 +36,43 @@ bot.on('callback_query', async (query) => {
           quantity: 1,
           unit_price: 29
         }
-      ]
+      ],
+      metadata: {
+        user_id: userId
+      }
     });
 
     bot.sendMessage(userId, `💰 Pague aqui:\n${preference.body.init_point}`);
-
-    // 🔥 ENTREGA AUTOMÁTICA (versão simples)
-    setTimeout(() => {
-      bot.sendMessage(userId, `✅ Pagamento aprovado! Acesse o VIP:\n${LINK_VIP}`);
-    }, 10000); // 10 segundos depois
   }
 });
 
-app.listen(3000, () => console.log("Rodando"));
+// WEBHOOK (SÓ AQUI LIBERA ACESSO)
+app.post('/webhook', async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (data.type === "payment") {
+      const payment = await mercadopago.payment.findById(data.data.id);
+
+      if (payment.body.status === "approved") {
+        const userId = payment.body.metadata.user_id;
+
+        await bot.sendMessage(
+          userId,
+          `✅ Pagamento confirmado!\nAcesse o VIP:\n${LINK_VIP}`
+        );
+      }
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.log("Erro webhook:", error);
+    res.sendStatus(500);
+  }
+});
+
+app.get('/', (req, res) => {
+  res.send("Bot rodando");
+});
+
+app.listen(3000, () => console.log("Servidor rodando"));
